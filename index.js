@@ -1,5 +1,5 @@
 
-
+const fs= require("fs");
 const express = require("express");
 const dotenv = require("dotenv");
 const { default: mongoose } = require("mongoose");
@@ -61,6 +61,11 @@ io.on("connection", (socket) => {
 
   socket.on("join chat", (room) => {
     socket.join(room);
+  });
+
+  socket.on("upload",({data}) => {
+      fs.writeFile("upload/" + "test.png", data,{encoding:'base64'} );
+      socket.emit('uploaded',{buffer: data.toString("base64")});
   });
 
   socket.on("new Message", (newMessageStatus) => {
