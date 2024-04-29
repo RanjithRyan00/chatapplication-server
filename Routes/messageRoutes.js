@@ -7,8 +7,9 @@ const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.route("/:chatId").get(protect, allMessages);
+// router.get('/:chatId', protect, allMessages);
 router.route("/").post(protect, sendMessage);
+router.route("/:chatId").get(protect, allMessages);
 
 
 module.exports = router;

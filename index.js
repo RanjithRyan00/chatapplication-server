@@ -6,6 +6,10 @@ const { default: mongoose } = require("mongoose");
 const app = express();
 const cors = require("cors");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
+const userRoutes = require("./Routes/userRoutes");
+const chatRoutes = require("./Routes/chatRoutes");
+const messageRoutes = require("./Routes/messageRoutes");
+
 app.use(
   cors({
     origin: "*",
@@ -14,10 +18,6 @@ app.use(
 dotenv.config();
 
 app.use(express.json());
-
-const userRoutes = require("./Routes/userRoutes");
-const chatRoutes = require("./Routes/chatRoutes");
-const messageRoutes = require("./Routes/messageRoutes");
 
 const connectDb = async () => {
   try {
@@ -63,11 +63,6 @@ io.on("connection", (socket) => {
     socket.join(room);
   });
 
-  socket.on("upload",({data}) => {
-      fs.writeFile("upload/" + "test.png", data,{encoding:'base64'} );
-      socket.emit('uploaded',{buffer: data.toString("base64")});
-  });
-
   socket.on("new Message", (newMessageStatus) => {
     const chat = newMessageStatus.chat;
     if (!chat.users) {
@@ -78,4 +73,10 @@ io.on("connection", (socket) => {
       socket.in(user._id).emit("message received", newMessageStatus.message);
     });
   });
+
+  
+//   socket.on("upload",({data}) => {
+//     fs.writeFile("upload/" + "test.png", data,{encoding:'base64'},() => {} );
+//     socket.emit('uploaded',{buffer: data.toString("base64")});
+// });
 });

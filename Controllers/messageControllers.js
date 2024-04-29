@@ -3,6 +3,7 @@ const Message = require("../models/messageModel");
 const User = require("../models/userModel");
 const Chat = require("../models/chatModels");
 
+
 const allMessages = expressAsyncHandler(async (req, res) => {
   try {
     const messages = await Message.find({ chat: req.params.chatId })
@@ -17,9 +18,9 @@ const allMessages = expressAsyncHandler(async (req, res) => {
 });
 
 const sendMessage = expressAsyncHandler(async (req, res) => {
-  const { content, chatId } = req.body;
-
-  if (!content || !chatId) {
+  const { content, chatId, file } = req.body;
+  console.log("Hittting")
+  if (!chatId || !content && !file ) {
     console.log("Invalid data passed into request");
     return res.sendStatus(400);
   }
@@ -27,6 +28,7 @@ const sendMessage = expressAsyncHandler(async (req, res) => {
   var newMessage = {
     sender: req.user._id,
     content: content,
+    file: file,
     chat: chatId,
   };
 
