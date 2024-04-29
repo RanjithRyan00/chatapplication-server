@@ -3,6 +3,7 @@ const UserModel = require("../models/userModel");
 const expressAsyncHandler = require('express-async-handler');
 const generateToken = require('../Config/generateToken');
 
+
 const loginController = expressAsyncHandler(async (req, res) => {
     console.log(req.body);
     const { name, password } = req.body;
