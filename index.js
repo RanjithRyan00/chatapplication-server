@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 const { default: mongoose } = require("mongoose");
 const app = express();
 const cors = require("cors");
+var bodyParser = require('body-parser');
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const userRoutes = require("./Routes/userRoutes");
 const chatRoutes = require("./Routes/chatRoutes");
@@ -17,6 +18,8 @@ app.use(
 );
 dotenv.config();
 
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 app.use(express.json());
 
 const connectDb = async () => {

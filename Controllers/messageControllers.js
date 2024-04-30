@@ -7,9 +7,9 @@ const Chat = require("../models/chatModels");
 const allMessages = expressAsyncHandler(async (req, res) => {
   try {
     const messages = await Message.find({ chat: req.params.chatId })
-      .populate("sender", "name email")
-      .populate("reciever")
-      .populate("chat");
+      .populate("sender", "name email") //populate the sender details with the name and email
+      .populate("reciever") // populates the data with the receiver details
+      .populate("chat"); // populates with the chat details in the chat data.
     res.json(messages);
   } catch (error) {
     res.status(400);
@@ -18,9 +18,10 @@ const allMessages = expressAsyncHandler(async (req, res) => {
 });
 
 const sendMessage = expressAsyncHandler(async (req, res) => {
+  console.log("Enters");
   const { content, chatId, file } = req.body;
-  console.log("Hittting")
-  if (!chatId || !content && !file ) {
+
+  if (!chatId || !content && !file) {
     console.log("Invalid data passed into request");
     return res.sendStatus(400);
   }
@@ -35,13 +36,13 @@ const sendMessage = expressAsyncHandler(async (req, res) => {
   try {
     var message = await Message.create(newMessage);
 
-    console.log(message);
+
     message = await message.populate("sender", "name pic");
     message = await message.populate("chat");
     message = await message.populate("reciever");
     message = await User.populate(message, {
       path: "chat.users",
-      select: "name email",
+      select: ["name", "email"],
     });
 
     await Chat.findByIdAndUpdate(req.body.chatId, { latestMessage: message });
