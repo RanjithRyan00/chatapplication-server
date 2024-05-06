@@ -1,5 +1,5 @@
 
-const fs= require("fs");
+const fs = require("fs");
 const express = require("express");
 const dotenv = require("dotenv");
 const { default: mongoose } = require("mongoose");
@@ -7,6 +7,8 @@ const app = express();
 const cors = require("cors");
 var bodyParser = require('body-parser');
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
+
+//Routes 
 const userRoutes = require("./Routes/userRoutes");
 const chatRoutes = require("./Routes/chatRoutes");
 const messageRoutes = require("./Routes/messageRoutes");
@@ -30,6 +32,8 @@ const connectDb = async () => {
     console.log("Server is NOT connected to Database", err.message);
   }
 };
+
+//connecting to db.
 connectDb();
 
 app.get("/", (req, res) => {
@@ -46,7 +50,9 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-const server= app.listen(PORT, console.log("Server is Running........."));
+const server= app.listen(PORT, console.log(`Server is Running on port ${PORT}`));
+
+//Establishing socket connection on the server with the socket.io
 const io = require("socket.io")(server, {
   cors: {
     origin: "*",
@@ -56,30 +62,29 @@ const io = require("socket.io")(server, {
 
 io.on("connection", (socket) => {
 
-  
   socket.on("setup", (user) => {
     socket.join(user.data._id);
-    socket.emit('connected');
+    socket.emit("connected");
   });
 
-  socket.on("join chat", (room) => {
+  socket.on("joinChat", (room) => {
     socket.join(room);
   });
 
-  socket.on("new Message", (newMessageStatus) => {
+  socket.on("newMessage", (newMessageStatus) => {
     const chat = newMessageStatus.chat;
+    const sender = newMessageStatus.sender;
     if (!chat.users) {
       return console.log("chat.users not defined");
     }
     chat.users.forEach((user) => {
-      if (user._id === newMessageStatus.sender._id) return;
-      socket.in(user._id).emit("message received", newMessageStatus.message);
+      if (user._id === sender._id) return;
+      socket.in(user._id).emit("message received", {sender: sender.name, message: newMessageStatus.content});
     });
   });
 
-  
-//   socket.on("upload",({data}) => {
-//     fs.writeFile("upload/" + "test.png", data,{encoding:'base64'},() => {} );
-//     socket.emit('uploaded',{buffer: data.toString("base64")});
-// });
+  //   socket.on("upload",({data}) => {
+  //     fs.writeFile("upload/" + "test.png", data,{encoding:'base64'},() => {} );
+  //     socket.emit('uploaded',{buffer: data.toString("base64")});
+  // });
 });
