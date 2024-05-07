@@ -5,14 +5,14 @@ const generateToken = require('../Config/generateToken');
 
 
 const loginController = expressAsyncHandler(async (req, res) => {
-    console.log(req.body);
-    const { name, password } = req.body;
+    // console.log(req.body);
+    const { email, password } = req.body;
   
-    const user = await UserModel.findOne({ name });
-  
-    console.log("fetched user Data", user);
-    console.log(await user.matchPassword(password));
-    if (user && (await user.matchPassword(password))) {
+    const user = await UserModel.findOne({ email });
+    if(!user){
+      return res.status(404).json("User not found")
+    }
+    if (await user.matchPassword(password)) {
       const response = {
         _id: user._id,
         name: user.name,
@@ -20,7 +20,6 @@ const loginController = expressAsyncHandler(async (req, res) => {
         isAdmin: user.isAdmin,
         token: generateToken(user._id),
       };
-      console.log(response);
       res.json(response);
     } else {
       res.status(401);

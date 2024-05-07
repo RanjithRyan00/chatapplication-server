@@ -18,7 +18,6 @@ const allMessages = expressAsyncHandler(async (req, res) => {
 });
 
 const sendMessage = expressAsyncHandler(async (req, res) => {
-  console.log("Enters");
   const { content, chatId, file } = req.body;
 
   if (!chatId || !content && !file) {
@@ -29,7 +28,12 @@ const sendMessage = expressAsyncHandler(async (req, res) => {
   var newMessage = {
     sender: req.user._id,
     content: content,
-    file: file,
+    file: {
+      fileName : file.fileName,
+      fileType : file.fileType,
+      fileSize : file.fileSize,
+      fileUrl : file.fileUrl
+    },
     chat: chatId,
   };
 

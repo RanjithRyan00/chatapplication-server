@@ -10,13 +10,13 @@ const messageModel = mongoose.Schema(
       type: String,
       trim: true,
     },
-
-    file: { type: String},
-    // contentType: { type: String },
-    // size: { type: Number },
-    path: { type: String }, // For storing file paths if using a file system
-    // url: { type: String }, // For storing URLs if files are hosted elsewhere
-
+    file: {
+     fileName : { type: String },
+     fileType : { type: String},
+     fileSize : { type : String},
+     fileUrl : { type : String }
+    },
+    path: { type: String },
     reciever: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
