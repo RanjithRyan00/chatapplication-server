@@ -33,7 +33,7 @@ const loginController = expressAsyncHandler(async (req, res) => {
   
     // check for all fields
     if (!name || !email || !password) {
-      res.send(400);
+      res.statusCode(400);
       throw Error("All necessary input fields have not been filled");
     }
   
