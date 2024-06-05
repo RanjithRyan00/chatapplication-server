@@ -11,10 +11,14 @@ const messageModel = mongoose.Schema(
       trim: true,
     },
     file: {
-     fileName : { type: String },
-     fileType : { type: String},
-     fileSize : { type : String},
-     fileUrl : { type : String }
+      fileName: { type: String },
+      fileType: { type: String },
+      fileSize: { type: String },
+      fileUrl: { type: String },
+    },
+    voiceNote: {
+      url: { type: String },
+      duration: { type: Number }, // in seconds
     },
     path: { type: String },
     reciever: {
@@ -27,7 +31,7 @@ const messageModel = mongoose.Schema(
     },
   },
   {
-    timeStamp: true,
+    timestamps: false,
   }
 );
 
