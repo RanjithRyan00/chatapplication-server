@@ -1,21 +1,11 @@
 const expressAsyncHandler = require("express-async-handler");
+const path = require("path");
+const fs = require("fs");
+
 const Message = require("../models/messageModel");
 const User = require("../models/userModel");
 const Chat = require("../models/chatModels");
-const multer = require("multer");
-const path = require("path");
-
-// Set up Multer storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
-
-const upload = multer({ storage });
+// const uploadSingleVoiceNote = require("../middleware/uploadMiddleware");
 
 const allMessages = expressAsyncHandler(async (req, res) => {
   try {
@@ -30,8 +20,8 @@ const allMessages = expressAsyncHandler(async (req, res) => {
 });
 
 const sendMessage = expressAsyncHandler(async (req, res) => {
-  const { content, chatId } = req.body;
-  const file = req.file;
+  const { content, chatId, file } = req.body;
+  // const file = req.file;
 
   if (!chatId || (!content && !file)) {
     console.log("Invalid data passed into request");
@@ -41,21 +31,25 @@ const sendMessage = expressAsyncHandler(async (req, res) => {
   const newMessage = {
     sender: req.user._id,
     content: content || null,
-    file: file ? {
-      fileName: file.filename,
-      fileType: file.mimetype,
-      fileSize: file.size,
-      fileUrl: `uploads/${file.filename}`,
-    } : null,
+    file: file
+      ? {
+          fileName: file.fileame || file.fileName,
+          fileType: file.mimetype || file.fileType,
+          fileSize: file.size || file.fileSize,
+          fileUrl:  file.fileUrl,
+        }
+      : null,
     chat: chatId,
   };
+
+  // console.log("Message Details:", newMessage);
 
   try {
     let message = await Message.create(newMessage);
 
-    message = await message.populate("sender", "name pic").execPopulate();
-    message = await message.populate("chat").execPopulate();
-    message = await message.populate("reciever").execPopulate();
+    message = await message.populate("sender", "name pic");
+    message = await message.populate("chat");
+    message = await message.populate("reciever");
     message = await User.populate(message, {
       path: "chat.users",
       select: ["name", "email"],
@@ -64,27 +58,25 @@ const sendMessage = expressAsyncHandler(async (req, res) => {
     await Chat.findByIdAndUpdate(chatId, { latestMessage: message });
     res.json(message);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(402).json({ message: error.message });
   }
 });
 
 const uploadVoiceNote = expressAsyncHandler(async (req, res) => {
-  upload.single("voiceNote")(req, res, async (err) => {
-    if (err) {
-      return res.status(400).json({ message: "Upload failed", error: err.message });
-    }
-
+  try {
     const file = req.file;
-    const { chatId, duration } = req.body;
+    const { chatId, duration, userData } = req.body;
 
-    if (!chatId || !file || !duration) {
+    const userDataParsed = JSON.parse(userData);
+
+    if (!chatId || !file || !duration || !userData) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     const newMessage = {
-      sender: req.user._id,
+      sender: userDataParsed.data._id || "6638a9af250d7ea89d186a16",
       voiceNote: {
-        url: `uploads/${file.filename}`,
+        url: file.filename,
         duration: duration,
       },
       chat: chatId,
@@ -92,21 +84,36 @@ const uploadVoiceNote = expressAsyncHandler(async (req, res) => {
 
     try {
       let message = await Message.create(newMessage);
-
-      message = await message.populate("sender", "name pic").execPopulate();
-      message = await message.populate("chat").execPopulate();
-      message = await message.populate("reciever").execPopulate();
-      message = await User.populate(message, {
-        path: "chat.users",
-        select: ["name", "email"],
+      message = await message.populate("sender", "name pic");
+      message = await message.populate("chat");
+      message = await message.populate("chat.users", "name email");
+      await Chat.findByIdAndUpdate(chatId, {
+        latestMessage: message,
       });
-
-      await Chat.findByIdAndUpdate(chatId, { latestMessage: message });
-      res.json(message);
+      return res.json(message);
     } catch (error) {
-      res.status(400).json({ message: error.message });
+      res.status(400).json({ error: "error occurred" });
     }
-  });
+
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
 });
 
-module.exports = { allMessages, sendMessage, uploadVoiceNote };
+const getAudio = (req, res) => {
+  const fileName = req.params.filename;
+  const filePath = path.join(__dirname + "\\..\\" + "uploads\\" + fileName);
+  // res.set("Content-Type", "audio/wav");
+  // res.sendFile(filePath);
+  fs.readFile(filePath,(err, data) => {
+    if(err){
+      console.log('Error reading audio file:', err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    const base64Audio = data.toString('base64');
+    res.status(200).json({ audio : base64Audio });
+  })
+};
+
+module.exports = { allMessages, sendMessage, uploadVoiceNote, getAudio };
