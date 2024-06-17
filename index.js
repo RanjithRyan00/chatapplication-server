@@ -7,7 +7,7 @@ const app = express();
 const cors = require("cors");
 var bodyParser = require('body-parser');
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
-
+const multer = require("multer");
 //Routes 
 const userRoutes = require("./Routes/userRoutes");
 const chatRoutes = require("./Routes/chatRoutes");
