@@ -13,6 +13,7 @@ const userRoutes = require("./Routes/userRoutes");
 const chatRoutes = require("./Routes/chatRoutes");
 const messageRoutes = require("./Routes/messageRoutes");
 const botRoutes = require("./Routes/botRoutes");
+const logRequest = require("./middleware/loggerMiddleware");
 
 app.use(
   cors({
@@ -28,23 +29,22 @@ app.use(express.json());
 const connectDb = async () => {
   try {
     const connect = await mongoose.connect(`${process.env.MONGO_URI}`);
-    console.log("Server is Connected to Database");
+    console.log("Connected to DB");
   } catch (err) {
-    console.log("Server is NOT connected to Database", err.message);
+    console.log("Cannot Connect to DB", err.message);
   }
 };
 
 //connecting to db.
 connectDb();
 
-app.get("/", (req, res) => {
-  res.send("API is running123");
-});
+app.use(logRequest);
 
 app.use("/user", userRoutes);
 app.use("/chat", chatRoutes);
 app.use("/message", messageRoutes);
 app.use("/chatbot", botRoutes);
+
 // Error Handling middlewares
 app.use(notFound);
 app.use(errorHandler);

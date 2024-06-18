@@ -2,16 +2,23 @@ const express = require('express');
 const UserModel = require("../models/userModel");
 const expressAsyncHandler = require('express-async-handler');
 const generateToken = require('../Config/generateToken');
+const logger = require('../logger/logger')
 
 
 const loginController = expressAsyncHandler(async (req, res) => {
-    // console.log(req.body);
     const { email, password } = req.body;
+
+    // if(!email || !password){
+    //   return res.status(401).json("Fill the necessary details");
+    // }
   
     const user = await UserModel.findOne({ email });
+
     if(!user){
+      logger.info("Not a registered User")
       return res.status(404).json("User not found")
     }
+
     if (await user.matchPassword(password)) {
       const response = {
         _id: user._id,
@@ -23,6 +30,7 @@ const loginController = expressAsyncHandler(async (req, res) => {
       res.json(response);
     } else {
       res.status(401);
+      logger.info("Invalid UserName or Password")
       throw new Error("Invalid UserName or Password");
     }
   });
@@ -33,7 +41,7 @@ const loginController = expressAsyncHandler(async (req, res) => {
   
     // check for all fields
     if (!name || !email || !password) {
-      res.statusCode(400);
+      res.status(400);
       throw Error("All necessary input fields have not been filled");
     }
   

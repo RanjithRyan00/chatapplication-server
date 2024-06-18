@@ -13,8 +13,9 @@ const router = express.Router();
 
 router.post("/", protect, sendMessage);
 router.get('/:chatId', protect, allMessages);
-router.get('/audio/:filename',getAudio);
-router.post("/voice", upload.single('voice'), uploadVoiceNote );
+// router.get('/audio/:filename', getAudio);
+router.post("/voice", uploadVoiceNote );
+// router.post("/voice", upload.single('voice'), uploadVoiceNote );
 
 
 module.exports = router;

@@ -21,7 +21,6 @@ const allMessages = expressAsyncHandler(async (req, res) => {
 
 const sendMessage = expressAsyncHandler(async (req, res) => {
   const { content, chatId, file } = req.body;
-  // const file = req.file;
 
   if (!chatId || (!content && !file)) {
     console.log("Invalid data passed into request");
@@ -36,13 +35,11 @@ const sendMessage = expressAsyncHandler(async (req, res) => {
           fileName: file.fileame || file.fileName,
           fileType: file.mimetype || file.fileType,
           fileSize: file.size || file.fileSize,
-          fileUrl:  file.fileUrl,
+          fileUrl: file.fileUrl,
         }
       : null,
     chat: chatId,
   };
-
-  // console.log("Message Details:", newMessage);
 
   try {
     let message = await Message.create(newMessage);
@@ -64,19 +61,20 @@ const sendMessage = expressAsyncHandler(async (req, res) => {
 
 const uploadVoiceNote = expressAsyncHandler(async (req, res) => {
   try {
-    const file = req.file;
-    const { chatId, duration, userData } = req.body;
+    const { voice, chatId, duration, userData } = req.body;
 
     const userDataParsed = JSON.parse(userData);
 
-    if (!chatId || !file || !duration || !userData) {
+    if (!chatId || !duration || !userData || !voice) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
+    // const baseAudio = voice.replace(/^data:audio\/\w+;base64,/, "");
+
     const newMessage = {
-      sender: userDataParsed.data._id || "6638a9af250d7ea89d186a16",
+      sender: userDataParsed.data._id,
       voiceNote: {
-        url: file.filename,
+        url: voice,
         duration: duration,
       },
       chat: chatId,
@@ -94,26 +92,10 @@ const uploadVoiceNote = expressAsyncHandler(async (req, res) => {
     } catch (error) {
       res.status(400).json({ error: "error occurred" });
     }
-
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 });
 
-const getAudio = (req, res) => {
-  const fileName = req.params.filename;
-  const filePath = path.join(__dirname + "\\..\\" + "uploads\\" + fileName);
-  // res.set("Content-Type", "audio/wav");
-  // res.sendFile(filePath);
-  fs.readFile(filePath,(err, data) => {
-    if(err){
-      console.log('Error reading audio file:', err);
-      res.status(500).send('Internal Server Error');
-      return;
-    }
-    const base64Audio = data.toString('base64');
-    res.status(200).json({ audio : base64Audio });
-  })
-};
 
-module.exports = { allMessages, sendMessage, uploadVoiceNote, getAudio };
+module.exports = { allMessages, sendMessage, uploadVoiceNote };
